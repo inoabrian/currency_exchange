@@ -11,6 +11,7 @@ import * as db from "./database";
 import * as exchange_response_model from "./models/ExchangeResponse";
 import * as conversion_model from "./models/ConversionPayload";
 import * as exchange_request_model from "./models/ExchangeRequestPayload";
+import { connect } from "http2";
 
 // function to handle the conversion of the currencies
 const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision?: number) =>
@@ -52,15 +53,18 @@ const parseXMLToJSON: (xml2Convert: string) => string = (xml2Convert: string) =>
 
 // function to save our conversion transaction to our database
 const logTransaction: (transaction: conversion_model.ConversionPayload) => Promise<mongo.InsertOneWriteOpResult> = async (transaction: conversion_model.ConversionPayload) => {
-
     try {
         // mongo db connection promise
         let dbConnection: () => Promise<mongo.MongoClient> = db.default;
         let connection: mongo.MongoClient = await dbConnection();
 
-        return connection.db()
+        let writeConfirmation = await connection.db()
             .collection(process.env.MONGO_COLLECTION)
             .insertOne(transaction);
+
+        await connection.close();
+
+        return new Promise((resolve, reject) => resolve(writeConfirmation));
     }
     catch (err) {
         return new Promise((resolve, reject) => reject(err));
