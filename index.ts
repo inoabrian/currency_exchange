@@ -6,12 +6,10 @@ import * as xmljs from 'xml-js';
 import * as fetch from "node-fetch";
 import * as mathjs from "mathjs";
 
-
 import * as db from "./database";
 import * as exchange_response_model from "./models/ExchangeResponse";
 import * as conversion_model from "./models/ConversionPayload";
 import * as exchange_request_model from "./models/ExchangeRequestPayload";
-import { connect } from "http2";
 
 // function to handle the conversion of the currencies
 const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision?: number) =>
@@ -149,6 +147,8 @@ const service: micro.RequestHandler[] = [
 ];
 
 micro.default(router.router(...service))
-    .listen(process.env.PORT || 3000, () => {
-        console.log(`service listening ${process.env.PORT || 3000}`);
-    });
+.listen(process.env.PORT || 3000, () => {
+    console.log(`service listening ${process.env.PORT || 3000}`);
+});
+
+export = service;
