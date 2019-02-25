@@ -12,8 +12,15 @@ import * as exchange_response_model from "./models/ExchangeResponse";
 import * as conversion_model from "./models/ConversionPayload";
 import * as exchange_request_model from "./models/ExchangeRequestPayload";
 
+// function to handle the conversion of the currencies
 const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision?: number) =>
     string = (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision: number = 2) => {
+        // We need to check how many conversions we need to complete to get our result
+        // CURRENCY ||  CURRENCY ||  STEPS
+        // EUR      ->  OTHER    = 1 (MULTIPLICATION)
+        // OTHER    ->  EUR      = 1 (DIVISION)
+        // OTHER    ->  OTHER    = 2 (MULTIPLICATION INTO EURO THEN MULTIPLY EURO TO SECOND CURRENCY)
+
         let expression: string;
 
         if (to._attributes.currency === "EUR") {
@@ -38,10 +45,12 @@ const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_respon
         );
     };
 
+// function to parse and convert the euro exchange data to json
 const parseXMLToJSON: (xml2Convert: string) => string = (xml2Convert: string) => {
     return xmljs.xml2json(xml2Convert, { compact: true, spaces: 4 });
 };
 
+// function to save our conversion transaction to our database
 const logTransaction: (transaction: conversion_model.ConversionPayload) => Promise<mongo.InsertOneWriteOpResult> = async (transaction: conversion_model.ConversionPayload) => {
 
     try {
@@ -58,6 +67,7 @@ const logTransaction: (transaction: conversion_model.ConversionPayload) => Promi
     }
 };
 
+// service logic to handle our /convert route POST request
 const convertHandler: router.AugmentedRequestHandler = async (request: router.ServerRequest, response: http.ServerResponse): Promise<any> => {
 
     try {
@@ -82,9 +92,11 @@ const convertHandler: router.AugmentedRequestHandler = async (request: router.Se
         // We parse convert the xml data to json for easier use
         let dailyExchangeInformationJSON: exchange_response_model.ExchangeResponse = JSON.parse(parseXMLToJSON(dailyExchangeInformationXML));
 
+        // extract the needed currency information
         let convertToRate = dailyExchangeInformationJSON["gesmes:Envelope"].Cube.Cube.Cube.filter((element) => postBody.to === element._attributes.currency);
         let convertFromRate = dailyExchangeInformationJSON["gesmes:Envelope"].Cube.Cube.Cube.filter((element) => postBody.from === element._attributes.currency);
 
+        // if one either to or from are EUR we need to assign an empty entry
         if (convertToRate.length === 0 || convertFromRate.length === 0) {
             if (postBody.to === "EUR") {
                 convertToRate = [{
@@ -105,12 +117,6 @@ const convertHandler: router.AugmentedRequestHandler = async (request: router.Se
             }
         }
 
-        // We need to check how many conversions we need to complete to get our result
-
-        // EUR      ->  OTHER   = 1 (MULTIPLICATION)
-        // OTHER    ->  EUR     = 1 (DIVISION)
-        // OTHER    ->  OTHER   = 2 (MULTIPLICATION INTO EURO THEN MULTIPLY EURO TO SECOND CURRENCY)
-
         const calculatedConversion: string = convertCurrency(convertToRate[0], convertFromRate[0], postBody.value, postBody.precision);
 
         let result: conversion_model.ConversionPayload = <conversion_model.ConversionPayload>{
@@ -125,14 +131,14 @@ const convertHandler: router.AugmentedRequestHandler = async (request: router.Se
         micro.send(response, 200, result);
     }
     catch (err) {
-        micro.sendError(request, response, err);
+        micro.send(response, 500, err);
     }
 };
 
 /* 
     Method:     POST
     route:      /convert
-    payload:    { to: ["USD", "EUR"], from: ["USD", "EUR"] }
+    payload:    { to: "USD", from: "JPY", value: "1.00", precision: 2 }
 */
 const service: micro.RequestHandler[] = [
     router.post('/convert', convertHandler)
@@ -142,6 +148,3 @@ micro.default(router.router(...service))
     .listen(process.env.PORT || 3000, () => {
         console.log(`service listening ${process.env.PORT || 3000}`);
     });
-
-
-export = router.router(...service);
