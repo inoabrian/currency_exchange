@@ -12,8 +12,8 @@ import * as exchange_response_model from "./models/ExchangeResponse";
 import * as conversion_model from "./models/ConversionPayload";
 import * as exchange_request_model from "./models/ExchangeRequestPayload";
 
-const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string) =>
-    string = (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string) => {
+const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision?: number) =>
+    string = (to: exchange_response_model.Cube3, from: exchange_response_model.Cube3, value: string, precision: number = 2) => {
         let expression: string;
 
         if (to._attributes.currency === "EUR") {
@@ -25,7 +25,7 @@ const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_respon
         else {
             let euroConversion = mathjs.format(
                 mathjs.eval(`${value} * ${from._attributes.rate}`), 
-                { notation: 'fixed', precision: 2 }
+                { notation: 'fixed', precision: precision }
             );
             
             // From EUR to Requested currency
@@ -34,7 +34,7 @@ const convertCurrency: (to: exchange_response_model.Cube3, from: exchange_respon
 
         return mathjs.format(
             expression,
-            { notation: 'fixed', precision: 2 }
+            { notation: 'fixed', precision: precision }
         );
     };
 
@@ -111,7 +111,7 @@ const convertHandler: router.AugmentedRequestHandler = async (request: router.Se
         // OTHER    ->  EUR     = 1 (DIVISION)
         // OTHER    ->  OTHER   = 2 (MULTIPLICATION INTO EURO THEN MULTIPLY EURO TO SECOND CURRENCY)
 
-        const calculatedConversion: string = convertCurrency(convertToRate[0], convertFromRate[0], postBody.value);
+        const calculatedConversion: string = convertCurrency(convertToRate[0], convertFromRate[0], postBody.value, postBody.precision);
 
         let result: conversion_model.ConversionPayload = <conversion_model.ConversionPayload>{
             to: postBody.to,
