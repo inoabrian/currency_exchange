@@ -3,7 +3,6 @@
         "target": "es6",
         "module": "commonjs",
         "sourceMap": true,
-        "outDir": "./dist",
-        "listFiles": true
+        "outDir": "./dist"
     }
 }

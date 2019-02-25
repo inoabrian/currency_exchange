@@ -13,6 +13,7 @@
   "author": "inoabrian",
   "license": "ISC",
   "dependencies": {
+    "mathjs": "^5.5.0",
     "micro": "^9.3.3",
     "micro-dev": "^3.0.0",
     "microrouter": "^3.1.3",
