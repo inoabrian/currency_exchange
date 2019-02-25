@@ -1,0 +1,25 @@
+# docker-compose.yml
+version: "2"
+
+services:
+  web:
+    build: .
+    links: 
+      - mongo
+    volumes:
+      - ./dist:/service/dist
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URL=mongodb://mongo:27017/tax-fix
+      - MONGO_DB=tax-fix
+      - MONGO_COLLECTION=exchange-log
+      - EXCHANGE_INFO_URI=https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongodata:/data/db
+volumes:
+  mongodata:
