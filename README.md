@@ -54,3 +54,5 @@ You can test the convert route with the following:
         "convertedValue": "125.75",
         "_id": "5c7482b7bfd1f600100bb01a"
     }
+
+**Idea for better tests could be snapshot testing where daily exchange rates are downloaded and tested against to assure the data and results are always the same.**
