@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node ./dist/index.js",
     "start": "node ./dist/index.js",
-    "test": "ava ./dist/test.js",
+    "test": "npm run docker-debug && ava ./dist/test.js",
     "docker-debug": "docker-compose up --build"
   },
   "repository": "https://github.com/inoabrian/currency_exchange",
