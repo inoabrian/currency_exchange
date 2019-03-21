@@ -58,3 +58,13 @@ export interface ExchangeResponse {
     _declaration: Declaration;
     "gesmes:Envelope" : GesmesEnvelope;
 }
+
+export class Cube3 {
+    _attributes: Attributes4;
+    constructor() {
+        this._attributes = {
+            currency: "EUR",
+            rate: ''
+        };
+    }
+}
