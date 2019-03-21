@@ -69,6 +69,8 @@ const logTransaction: (transaction: conversion_model.ConversionPayload) => Promi
     }
 };
 
+
+
 // service logic to handle our /convert route POST request
 const convertHandler: router.AugmentedRequestHandler = async (request: router.ServerRequest, response: http.ServerResponse): Promise<any> => {
 
@@ -101,21 +103,11 @@ const convertHandler: router.AugmentedRequestHandler = async (request: router.Se
         // if one either to or from are EUR we need to assign an empty entry
         if (convertToRate.length === 0 || convertFromRate.length === 0) {
             if (postBody.to === "EUR") {
-                convertToRate = [{
-                    _attributes: {
-                        currency: "EUR",
-                        rate: ''
-                    }
-                }];
+                convertToRate = [ new exchange_response_model.Cube3() ];
             }
 
             if (postBody.from === "EUR") {
-                convertFromRate = [{
-                    _attributes: {
-                        currency: "EUR",
-                        rate: ''
-                    }
-                }];
+                convertFromRate = [ new exchange_response_model.Cube3() ];
             }
         }
 
